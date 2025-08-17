@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the plant monitoring system backend thoroughly with all endpoints and edge cases"
+user_problem_statement: "Test the plant monitoring dashboard frontend thoroughly with all functionality and user interactions"
 
 backend:
   - task: "Current Readings API"
