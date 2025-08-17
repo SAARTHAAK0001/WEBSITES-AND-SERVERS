@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Comprehensive Backend Test Suite for Plant Monitoring System
-Tests all API endpoints with realistic plant monitoring scenarios
-"""
-
 import requests
 import json
 import time
