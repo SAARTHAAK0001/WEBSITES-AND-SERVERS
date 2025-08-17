@@ -58,12 +58,14 @@ const HistoricalChart = () => {
     return null;
   };
 
+  const ActiveIcon = chartConfigs[activeTab].icon;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <div className="p-2 bg-blue-50 rounded-full">
-            <chartConfigs[activeTab].icon className="h-5 w-5 text-blue-600" />
+            <ActiveIcon className="h-5 w-5 text-blue-600" />
           </div>
           <span>Historical Data</span>
         </CardTitle>
