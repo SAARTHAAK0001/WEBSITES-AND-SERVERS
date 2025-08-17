@@ -1,22 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+import { useToast } from '../hooks/use-toast';
 import { 
   AlertTriangle, 
   CheckCircle, 
   Info, 
   X, 
   Bell,
-  Clock
+  Clock,
+  RefreshCw
 } from 'lucide-react';
-import { alerts as initialAlerts } from '../mockData';
+import { PlantMonitoringAPI } from '../services/api';
 import { formatDistanceToNow } from 'date-fns';
 
 const AlertsPanel = () => {
-  const [alerts, setAlerts] = useState(initialAlerts);
+  const [alerts, setAlerts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchAlerts = async () => {
+    try {
+      setIsLoading(true);
+      const data = await PlantMonitoringAPI.getAlerts();
+      setAlerts(data);
+    } catch (error) {
+      console.error('Failed to fetch alerts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch alerts",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAlerts();
+    
+    // Refresh alerts every 30 seconds
+    const interval = setInterval(fetchAlerts, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getAlertIcon = (type) => {
     switch (type) {
@@ -38,19 +67,85 @@ const AlertsPanel = () => {
     }
   };
 
-  const acknowledgeAlert = (alertId) => {
-    setAlerts(alerts.map(alert => 
-      alert.id === alertId 
-        ? { ...alert, acknowledged: true }
-        : alert
-    ));
+  const acknowledgeAlert = async (alertId) => {
+    try {
+      await PlantMonitoringAPI.acknowledgeAlert(alertId);
+      setAlerts(alerts.map(alert => 
+        alert.id === alertId 
+          ? { ...alert, acknowledged: true }
+          : alert
+      ));
+      toast({
+        title: "Success",
+        description: "Alert acknowledged",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to acknowledge alert",
+        variant: "destructive",
+      });
+    }
   };
 
-  const dismissAlert = (alertId) => {
-    setAlerts(alerts.filter(alert => alert.id !== alertId));
+  const dismissAlert = async (alertId) => {
+    try {
+      await PlantMonitoringAPI.dismissAlert(alertId);
+      setAlerts(alerts.filter(alert => alert.id !== alertId));
+      toast({
+        title: "Success",
+        description: "Alert dismissed",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to dismiss alert",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const clearAllAlerts = async () => {
+    try {
+      // Dismiss all alerts one by one
+      await Promise.all(alerts.map(alert => PlantMonitoringAPI.dismissAlert(alert.id)));
+      setAlerts([]);
+      toast({
+        title: "Success",
+        description: "All alerts cleared",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear all alerts",
+        variant: "destructive",
+      });
+    }
   };
 
   const unacknowledgedCount = alerts.filter(alert => !alert.acknowledged).length;
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Bell className="h-5 w-5 text-orange-600" />
+            <span>Alerts</span>
+            <RefreshCw className="h-4 w-4 animate-spin text-gray-500 ml-auto" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-80 flex items-center justify-center">
+            <div className="text-center">
+              <RefreshCw className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500">Loading alerts...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -60,11 +155,21 @@ const AlertsPanel = () => {
             <Bell className="h-5 w-5 text-orange-600" />
             <span>Alerts</span>
           </div>
-          {unacknowledgedCount > 0 && (
-            <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-              {unacknowledgedCount} new
-            </Badge>
-          )}
+          <div className="flex items-center space-x-2">
+            {unacknowledgedCount > 0 && (
+              <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+                {unacknowledgedCount} new
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchAlerts}
+              className="p-1 h-6 w-6"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       
@@ -92,7 +197,7 @@ const AlertsPanel = () => {
                           <div className="flex items-center space-x-2 mb-1">
                             {getAlertBadge(alert.type)}
                             <span className="text-xs text-gray-500 capitalize">
-                              {alert.sensor}
+                              {alert.sensor_type}
                             </span>
                           </div>
                           <p className={`text-sm ${alert.acknowledged ? 'text-gray-600' : 'text-gray-900'}`}>
@@ -143,7 +248,7 @@ const AlertsPanel = () => {
               variant="outline" 
               size="sm" 
               className="w-full"
-              onClick={() => setAlerts([])}
+              onClick={clearAllAlerts}
             >
               Clear All Alerts
             </Button>
