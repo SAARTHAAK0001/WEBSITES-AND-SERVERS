@@ -1,0 +1,81 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f2f2f2;
+}
+
+header {
+  background-color: #0a74da;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+main {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.product {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.product img {
+  width: 250px;
+  border-radius: 10px;
+}
+
+.description h2 {
+  margin: 0;
+}
+
+.rating, .feedback, .reviews {
+  margin-top: 30px;
+}
+
+.stars span {
+  font-size: 2em;
+  cursor: pointer;
+  color: #ccc;
+}
+
+.stars span:hover,
+.stars span.active {
+  color: #ffcc00;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px 0;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #0a74da;
+  color: white;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #055ab5;
+}
+
+textarea {
+  width: 100%;
+  height: 80px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+#reviews-list {
+  list-style-type: disc;
+  padding-left: 20px;
+}
